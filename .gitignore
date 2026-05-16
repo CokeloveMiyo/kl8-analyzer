@@ -15,3 +15,5 @@ fix_*.py
 quick_test.py
 patch_*.py
 rewrite_*.py
+cloudflared.exe
+.cloudflared/
