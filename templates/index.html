@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K8 Analyzer | 快乐8智能分析系统</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<!-- Particle canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Layout wrapper -->
+<div class="app-layout">
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <a href="#" class="sidebar-logo" onclick="scrollToTop()">
+        <svg width="32" height="32" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="16" cy="16" r="6" fill="currentColor" opacity="0.35"/>
+          <circle cx="16" cy="16" r="2" fill="currentColor"/>
+        </svg>
+        <span class="logo-text">K8 Analyzer</span>
+      </a>
+
+      <nav class="sidebar-nav">
+        <a href="#section-fetch" class="sidebar-link active" data-section="fetch">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.2-6"/><path d="M21 3v6h-6"/></svg>
+          数据获取
+        </a>
+        <a href="#section-analysis" class="sidebar-link" data-section="analysis">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          走势分析
+        </a>
+        <a href="#section-predict" class="sidebar-link" data-section="predict">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5v7L12 18l-9-4.5v-7z"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
+          AI 预测
+        </a>
+        <a href="#section-about" class="sidebar-link" data-section="about">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          关于
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-status" id="sidebarStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">等待获取数据</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Hero -->
+    <section class="hero">
+      <span class="hero-badge">中国福利彩票</span>
+      <h1 class="hero-title"><span class="gradient-text">快乐8</span> 智能分析系统</h1>
+      <p class="hero-sub">多维走势分析 · AI 深度学习预测</p>
+      <div class="hero-stats" id="heroStats" style="display:none">
+        <div class="hero-stat"><span class="hero-stat-num" id="statPeriods">-</span><span class="hero-stat-label">分析期数</span></div>
+        <div class="hero-stat"><span class="hero-stat-num" id="statLatest">-</span><span class="hero-stat-label">最新期号</span></div>
+        <div class="hero-stat"><span class="hero-stat-num" id="statDate">-</span><span class="hero-stat-label">开奖日期</span></div>
+      </div>
+    
+      <div class="recent-draws" id="recentDraws" style="display:none">
+        <h4 class="recent-draws-title">最近开奖结果</h4>
+        <div class="recent-draws-list" id="recentDrawsList"></div>
+      </div>
+    </section>
+
+    <!-- Section: Fetch Data -->
+    <section id="section-fetch" class="content-section">
+      <div class="card glass-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.2-6"/><path d="M21 3v6h-6"/></svg>
+            获取开奖数据
+          </h3>
+          <p class="card-desc">选择分析期数，从中国福利彩票官网实时获取最新开奖结果</p>
+        </div>
+        <div class="control-row">
+          <div class="period-btns">
+            <button class="period-btn" data-period="30">近30期</button>
+            <button class="period-btn active" data-period="50">近50期</button>
+            <button class="period-btn" data-period="100">近100期</button>
+            <button class="period-btn" data-period="200">近200期</button>
+            <button class="period-btn" data-period="500">近500期</button>
+          </div>
+          <button class="btn-primary" id="btnFetch">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.2-6"/><path d="M21 3v6h-6"/></svg>
+            获取数据
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading" style="display:none">
+        <div class="loading-orbit">
+          <div class="orbit-ring"></div>
+          <div class="orbit-ring"></div>
+          <div class="orbit-ring"></div>
+          <div class="orbit-center"></div>
+        </div>
+        <p class="loading-text">正在从中国福利彩票官网获取数据...</p>
+      </div>
+    </section>
+
+    <!-- Section: Analysis -->
+    <section id="section-analysis" class="content-section" style="display:none">
+      <div class="tab-bar">
+        <button class="tab active" data-tab="basic">基本走势</button>
+        <button class="tab" data-tab="size">大小走势</button>
+        <button class="tab" data-tab="oe">奇偶走势</button>
+        <button class="tab" data-tab="prime">质合走势</button>
+        <button class="tab" data-tab="sum">和值走势</button>
+        <button class="tab" data-tab="ac">AC走势</button>
+        <button class="tab" data-tab="mantissa">尾数分析</button>
+        <button class="tab" data-tab="sumtail">和尾走势</button>
+        <button class="tab" data-tab="zone">分区走势</button>
+        <button class="tab" data-tab="hotcold">冷热分析</button>
+      </div>
+
+      <div class="tab-content active" id="tab-basic">
+        <div class="card glass-card">
+          <h3 class="card-title">号码分布热力图</h3>
+          <p class="card-desc">颜色越深代表出现频率越高</p>
+          <div id="heatmap" class="heatmap"></div>
+        </div>
+        <div class="card glass-card">
+          <h3 class="card-title">频率与遗漏统计</h3>
+          <div class="table-wrap"><table id="freqTable" class="data-table"></table></div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-size"><div class="card glass-card"><h3 class="card-title">大小走势（大号 &ge;41，小号 &le;40）</h3><div class="chart-container"><canvas id="chartSize"></canvas></div></div></div>
+      <div class="tab-content" id="tab-oe"><div class="card glass-card"><h3 class="card-title">奇偶走势</h3><div class="chart-container"><canvas id="chartOE"></canvas></div></div></div>
+      <div class="tab-content" id="tab-prime"><div class="card glass-card"><h3 class="card-title">质合走势</h3><div class="chart-container"><canvas id="chartPrime"></canvas></div></div></div>
+      <div class="tab-content" id="tab-sum"><div class="card glass-card"><h3 class="card-title">和值走势</h3><div class="chart-container"><canvas id="chartSum"></canvas></div></div></div>
+      <div class="tab-content" id="tab-ac"><div class="card glass-card"><h3 class="card-title">AC值走势</h3><div class="chart-container"><canvas id="chartAC"></canvas></div></div></div>
+      <div class="tab-content" id="tab-mantissa"><div class="card glass-card"><h3 class="card-title">尾数分布分析</h3><div class="chart-container"><canvas id="chartMantissa"></canvas></div></div></div>
+      <div class="tab-content" id="tab-sumtail"><div class="card glass-card"><h3 class="card-title">和尾走势</h3><div class="chart-container"><canvas id="chartSumTail"></canvas></div></div></div>
+      <div class="tab-content" id="tab-zone">
+        <div class="card glass-card">
+          <h3 class="card-title">分区走势</h3>
+          <div class="zone-selector">
+            <button class="zone-btn" data-zone="4">四分区</button>
+            <button class="zone-btn" data-zone="5">五分区</button>
+            <button class="zone-btn" data-zone="8">八分区</button>
+            <button class="zone-btn" data-zone="10">十分区</button>
+            <button class="zone-btn" data-zone="16">十六分区</button>
+            <button class="zone-btn active" data-zone="20">二十分区</button>
+          </div>
+          <div class="chart-container"><canvas id="chartZone"></canvas></div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-hotcold"><div class="card glass-card"><h3 class="card-title">冷热分析</h3><div id="hotColdTable"></div></div></div>
+    </section>
+
+    <!-- Section: AI Predict -->
+    <section id="section-predict" class="content-section">
+      <div class="card glass-card">
+        <div class="card-header">
+          <h3 class="card-title" style="color:var(--accent2)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5v7L12 18l-9-4.5v-7z"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>
+            AI 智能预测
+          </h3>
+          <p class="card-desc" id="predictHint">请先获取数据后再进行AI预测</p>
+        </div>
+        <div class="control-row">
+          <div class="select-btns">
+            <button class="select-btn" data-select="1">选一</button>
+            <button class="select-btn" data-select="2">选二</button>
+            <button class="select-btn" data-select="3">选三</button>
+            <button class="select-btn" data-select="4">选四</button>
+            <button class="select-btn active" data-select="5">选五</button>
+            <button class="select-btn" data-select="6">选六</button>
+            <button class="select-btn" data-select="7">选七</button>
+            <button class="select-btn" data-select="8">选八</button>
+            <button class="select-btn" data-select="9">选九</button>
+            <button class="select-btn" data-select="10">选十</button>
+          </div>
+          <button class="btn-accent" id="btnPredict" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            AI 智能预测
+          </button>
+        </div>
+      </div>
+
+      <!-- Bagua Animation -->
+      <div id="aiThinking" class="ai-thinking" style="display:none">
+        <div class="ai-thinking-card">
+          
+          <div class="bagua-container">
+            <svg class="bagua-svg" viewBox="0 0 200 200" width="110" height="110">
+              <g class="bagua-rotate">
+                <!-- Outer decorative ring -->
+                <circle cx="100" cy="100" r="96" fill="none" stroke="#2d5a27" stroke-width="0.8" opacity="0.5"/>
+                <circle cx="100" cy="100" r="92" fill="none" stroke="#2d5a27" stroke-width="1.5"/>
+                <!-- Eight Trigrams positioned around the ring -->
+                <!-- Each trigram: 3 bars stacked, solid=1 rect, broken=2 rects with gap -->
+                <g transform="translate(100,100)">
+                  <!-- 离 = Fire (South / top): solid, broken, solid -->
+                  <g transform="rotate(-90) translate(0,-78)">
+                    <rect x="-8" y="-16" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 坤 = Earth (SW): broken, broken, broken -->
+                  <g transform="rotate(-45) translate(0,-78)">
+                    <rect x="-8" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 兑 = Lake (West / right): solid, solid, broken -->
+                  <g transform="rotate(0) translate(0,-78)">
+                    <rect x="-8" y="-16" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 乾 = Heaven (NW): solid, solid, solid -->
+                  <g transform="rotate(45) translate(0,-78)">
+                    <rect x="-8" y="-16" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 坎 = Water (North / bottom): broken, solid, broken -->
+                  <g transform="rotate(90) translate(0,-78)">
+                    <rect x="-8" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 艮 = Mountain (NE): solid, broken, broken -->
+                  <g transform="rotate(135) translate(0,-78)">
+                    <rect x="-8" y="-16" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="0" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 震 = Thunder (East / left): broken, broken, solid -->
+                  <g transform="rotate(180) translate(0,-78)">
+                    <rect x="-8" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-8" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                  <!-- 巽 = Wind (SE): broken, solid, solid -->
+                  <g transform="rotate(-135) translate(0,-78)">
+                    <rect x="-8" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="1.5" y="-16" width="6.5" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="-8" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                    <rect x="-8" y="0" width="16" height="3" rx="1.5" fill="#2d5a27"/>
+                  </g>
+                </g>
+                <!-- Inner ring -->
+                <circle cx="100" cy="100" r="56" fill="none" stroke="#2d5a27" stroke-width="2"/>
+                <!-- Tai Chi (Yin-Yang) -->
+                <circle cx="100" cy="100" r="54" fill="#2d5a27"/>
+                <path d="M100,46 A54,54 0 0,1 100,154 A27,27 0 0,0 100,100 A27,27 0 0,1 100,46" fill="#e8f0e4"/>
+                <circle cx="100" cy="73" r="9" fill="#2d5a27"/>
+                <circle cx="100" cy="127" r="9" fill="#e8f0e4"/>
+              </g>
+            </svg>
+            <div class="bagua-glow"></div>
+          </div>
+          <div class="ai-steps">
+            <div class="ai-step" id="aiStep1"><span class="ai-step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg></span><span class="ai-step-text">加载分析数据</span></div>
+            <div class="ai-step" id="aiStep2"><span class="ai-step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span><span class="ai-step-text">分析走势规律</span></div>
+            <div class="ai-step" id="aiStep3"><span class="ai-step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span class="ai-step-text">评估冷热遗漏</span></div>
+            <div class="ai-step" id="aiStep4"><span class="ai-step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></span><span class="ai-step-text">综合计算推荐</span></div>
+            <div class="ai-step" id="aiStep5"><span class="ai-step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="ai-step-text">生成预测结果</span></div>
+          </div>
+          <p class="ai-thinking-hint">AI 正在深度分析中...</p>
+        </div>
+      </div>
+
+      <div id="predictionResult" class="prediction-result" style="display:none"></div>
+    </section>
+
+    <!-- Section: About -->
+    <section id="section-about" class="content-section">
+      <div class="card glass-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            关于本站
+          </h3>
+        </div>
+        <div class="about-content">
+          <p class="about-desc">快乐8智能分析系统 —— 基于中国福利彩票官方数据，提供多维度走势分析和AI深度学习预测。仅供娱乐参考，不构成投注建议。</p>
+          <div class="about-contact">
+            <h4>联系方式</h4>
+            <div class="contact-items">
+              <a href="mailto:qinrui4952@163.com" class="contact-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>qinrui4952@163.com</span>
+              </a>
+              <a href="https://github.com/CokeloveMiyo" target="_blank" class="contact-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+                <span>github.com/CokeloveMiyo</span>
+              </a>
+            </div>
+          </div>
+          <p class="about-disclaimer">数据来源：中国福利彩票官网 www.cwl.gov.cn</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
+
+

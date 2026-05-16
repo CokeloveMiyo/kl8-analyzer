@@ -1,0 +1,17 @@
+﻿.env
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.html.bak
+page.html
+lottery.js
+test_*.py
+fix_*.py
+quick_test.py
+patch_*.py
+rewrite_*.py
